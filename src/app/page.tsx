@@ -25,8 +25,10 @@ export default function Home() {
   const submitButtonRef = useRef<HTMLButtonElement | null>(null);
   const [state, formAction] = useFormState(transcript, initialState);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("Current state:", state);
     if (state.response && state.sender) {
       setMessages((messages) => [
         {
@@ -35,7 +37,11 @@ export default function Home() {
           id: state.id || "",
         },
         ...messages,
-      ])
+      ]);
+      setError(null);
+    } else if (state.response && state.response.startsWith("An error occurred:")) {
+      console.error("Transcription error:", state.response);
+      setError(state.response);
     }
   }, [state])
 
@@ -54,7 +60,7 @@ export default function Home() {
     }
   }
 
-  console.log(messages);
+  console.log("Messages:", messages);
 
   return (
     <main className="bg-black h-screen overflow-hidden overflow-y-auto">
@@ -77,7 +83,12 @@ export default function Home() {
 
       <form action={formAction} className="flex flex-col bg-black">
         <div className="flex-1 bg-gradient-to-b from-blue-500 to-black">
-          <Messages />
+          <Messages messages={messages} />
+          {error && (
+            <div className="text-red-500 p-4 bg-black/50 mt-4 rounded">
+              {error}
+            </div>
+          )}
         </div>
 
         <input type="file" name="audio" hidden ref={fileRef} />
